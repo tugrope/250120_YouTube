@@ -1,0 +1,1 @@
+' =TRIM(SUBSTITUTE(C2, IFERROR(LOOKUP(2^15, FIND($E$2:$E$48, C2), $E$2:$E$48), ""), ""))
