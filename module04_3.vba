@@ -1,0 +1,5 @@
+' =TEXTJOIN("",,IF(AND(OR(MID(C2,SEQUENCE(LEN(C2)),1)="－",MID(C2,SEQUENCE(LEN(C2)),1)="ー"),ISNUMBER(FIND(MID(C2,SEQUENCE(LEN(C2))-1,1),"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"))),
+'     "-",
+'     MID(C2,SEQUENCE(LEN(C2)),1)))
+
+' ただし、カタカナの"ー"は処理できませんでした。
