@@ -3,153 +3,29 @@ Public Function NormalizeJapaneseText(ByVal inputText As String) As String
     Dim i As Long
     Dim currentChar As String
     Dim nextChar As String
+    Dim unicodeVal As Long
 
     '全角スペースを半角スペースに変換
     normalizedText = Replace(inputText, "　", " ")
 
-    '半角英数字を全角英数字に変換
+    '全角英字、全角数字、半角カタカナを変換
     For i = 1 To Len(normalizedText)
         currentChar = Mid(normalizedText, i, 1)
-        Select Case currentChar
-            '半角数字の変換（0-9 → ０-９）
-            Case "0" To "9"
-                Mid(normalizedText, i, 1) = ChrW(AscW(currentChar) + &HFEE0)
-            '半角英字大文字の変換（A-Z → Ａ-Ｚ）
-            Case "A" To "Z"
-                Mid(normalizedText, i, 1) = ChrW(AscW(currentChar) + &HFEE0)
-            '半角英字小文字の変換（a-z → ａ-ｚ）
-            Case "a" To "z"
-                Mid(normalizedText, i, 1) = ChrW(AscW(currentChar) + &HFEE0)
-            '半角記号の変換（例: ! → ！）
-            Case "!" : Mid(normalizedText, i, 1) = "！"
-            Case "@" : Mid(normalizedText, i, 1) = "＠"
-            Case "#" : Mid(normalizedText, i, 1) = "＃"
-            Case "$" : Mid(normalizedText, i, 1) = "＄"
-            Case "%" : Mid(normalizedText, i, 1) = "％"
-            Case "^" : Mid(normalizedText, i, 1) = "＾"
-            Case "&" : Mid(normalizedText, i, 1) = "＆"
-            Case "*" : Mid(normalizedText, i, 1) = "＊"
-            Case "(" : Mid(normalizedText, i, 1) = "（"
-            Case ")" : Mid(normalizedText, i, 1) = "）"
-            Case "-" : Mid(normalizedText, i, 1) = "ー"
-            Case "_" : Mid(normalizedText, i, 1) = "＿"
-            Case "+" : Mid(normalizedText, i, 1) = "＋"
-            Case "=" : Mid(normalizedText, i, 1) = "＝"
-        End Select
-    Next i
+        unicodeVal = AscW(currentChar)
 
-    '半角カタカナを全角カタカナに変換
-    For i = 1 To Len(normalizedText)
-        currentChar = Mid(normalizedText, i, 1)
-
-        '濁点・半濁点が続く場合の処理
-        If i < Len(normalizedText) Then
-            nextChar = Mid(normalizedText, i + 1, 1)
-        Else
-            nextChar = ""
+        If (unicodeVal >= &HFF21 And unicodeVal <= &HFF3A) Or (unicodeVal >= &HFF41 And unicodeVal <= &HFF5A) Then
+            ' 全角英字を半角に変換
+            Mid(normalizedText, i, 1) = ChrW(unicodeVal - &HFEE0)
+        ElseIf unicodeVal >= &HFF10 And unicodeVal <= &HFF19 Then
+            ' 全角数字を半角に変換
+            Mid(normalizedText, i, 1) = ChrW(unicodeVal - &HFEE0)
+        ElseIf unicodeVal >= &HFF65 And unicodeVal <= &HFF9F Then
+            ' 半角カタカナを全角に変換
+            Mid(normalizedText, i, 1) = StrConv(currentChar, vbWide)
+        ElseIf unicodeVal = &HFF0D Or unicodeVal = &H30FC Then
+            ' 長音記号を統一
+            Mid(normalizedText, i, 1) = ChrW(&H30FC)
         End If
-
-        Select Case AscW(currentChar)
-            '半角カタカナの範囲（ｦ-ﾟ）
-            Case &HFF66 To &HFF9F
-                '濁点（ﾞ）や半濁点（ﾟ）が続く場合
-                If nextChar = ChrW(&HFF9E) Or nextChar = ChrW(&HFF9F) Then
-                    '2文字を組み合わせて1つの全角カタカナに変換
-                    Select Case currentChar & nextChar
-                        ' 濁点付き全角カタカナの処理を追加
-                        Case "ｶﾞ": Mid(normalizedText, i, 2) = "ガ"
-                        Case "ｷﾞ": Mid(normalizedText, i, 2) = "ギ"
-                        Case "ｸﾞ": Mid(normalizedText, i, 2) = "グ"
-                        Case "ｹﾞ": Mid(normalizedText, i, 2) = "ゲ"
-                        Case "ｺﾞ": Mid(normalizedText, i, 2) = "ゴ"
-                        Case "ｻﾞ": Mid(normalizedText, i, 2) = "ザ"
-                        Case "ｼﾞ": Mid(normalizedText, i, 2) = "ジ"
-                        Case "ｽﾞ": Mid(normalizedText, i, 2) = "ズ"
-                        Case "ｾﾞ": Mid(normalizedText, i, 2) = "ゼ"
-                        Case "ｿﾞ": Mid(normalizedText, i, 2) = "ゾ"
-                        Case "ﾀﾞ": Mid(normalizedText, i, 2) = "ダ"
-                        Case "ﾁﾞ": Mid(normalizedText, i, 2) = "ヂ"
-                        Case "ﾂﾞ": Mid(normalizedText, i, 2) = "ヅ"
-                        Case "ﾃﾞ": Mid(normalizedText, i, 2) = "デ"
-                        Case "ﾄﾞ": Mid(normalizedText, i, 2) = "ド"
-                        Case "ﾊﾞ": Mid(normalizedText, i, 2) = "バ"
-                        Case "ﾋﾞ": Mid(normalizedText, i, 2) = "ビ"
-                        Case "ﾌﾞ": Mid(normalizedText, i, 2) = "ブ"
-                        Case "ﾍﾞ": Mid(normalizedText, i, 2) = "ベ"
-                        Case "ﾎﾞ": Mid(normalizedText, i, 2) = "ボ"
-                        Case "ﾊﾟ": Mid(normalizedText, i, 2) = "パ"
-                        Case "ﾋﾟ": Mid(normalizedText, i, 2) = "ピ"
-                        Case "ﾌﾟ": Mid(normalizedText, i, 2) = "プ"
-                        Case "ﾍﾟ": Mid(normalizedText, i, 2) = "ペ"
-                        Case "ﾎﾟ": Mid(normalizedText, i, 2) = "ポ"
-                    End Select
-                    ' 濁点・半濁点を削除し、次の文字をスキップする処理
-                    Mid(normalizedText, i + 1, 1) = "" ' 濁点・半濁点を空文字に置換
-                    i = i + 1  ' 次の文字（濁点・半濁点）を処理対象から除外
-                Else
-                    '濁点・半濁点が続かない場合は1文字ずつ変換
-                    Select Case currentChar
-                        Case "ｦ": Mid(normalizedText, i, 1) = "ヲ"
-                        Case "ｧ": Mid(normalizedText, i, 1) = "ァ"
-                        Case "ｨ": Mid(normalizedText, i, 1) = "ィ"
-                        Case "ｩ": Mid(normalizedText, i, 1) = "ゥ"
-                        Case "ｪ": Mid(normalizedText, i, 1) = "ェ"
-                        Case "ｫ": Mid(normalizedText, i, 1) = "ォ"
-                        Case "ｬ": Mid(normalizedText, i, 1) = "ャ"
-                        Case "ｭ": Mid(normalizedText, i, 1) = "ュ"
-                        Case "ｮ": Mid(normalizedText, i, 1) = "ョ"
-                        Case "ｯ": Mid(normalizedText, i, 1) = "ッ"
-                        Case "ｰ": Mid(normalizedText, i, 1) = "ー"
-                        Case "ｱ": Mid(normalizedText, i, 1) = "ア"
-                        Case "ｲ": Mid(normalizedText, i, 1) = "イ"
-                        Case "ｳ": Mid(normalizedText, i, 1) = "ウ"
-                        Case "ｴ": Mid(normalizedText, i, 1) = "エ"
-                        Case "ｵ": Mid(normalizedText, i, 1) = "オ"
-                        Case "ｶ": Mid(normalizedText, i, 1) = "カ"
-                        Case "ｷ": Mid(normalizedText, i, 1) = "キ"
-                        Case "ｸ": Mid(normalizedText, i, 1) = "ク"
-                        Case "ｹ": Mid(normalizedText, i, 1) = "ケ"
-                        Case "ｺ": Mid(normalizedText, i, 1) = "コ"
-                        Case "ｻ": Mid(normalizedText, i, 1) = "サ"
-                        Case "ｼ": Mid(normalizedText, i, 1) = "シ"
-                        Case "ｽ": Mid(normalizedText, i, 1) = "ス"
-                        Case "ｾ": Mid(normalizedText, i, 1) = "セ"
-                        Case "ｿ": Mid(normalizedText, i, 1) = "ソ"
-                        Case "ﾀ": Mid(normalizedText, i, 1) = "タ"
-                        Case "ﾁ": Mid(normalizedText, i, 1) = "チ"
-                        Case "ﾂ": Mid(normalizedText, i, 1) = "ツ"
-                        Case "ﾃ": Mid(normalizedText, i, 1) = "テ"
-                        Case "ﾄ": Mid(normalizedText, i, 1) = "ト"
-                        Case "ﾅ": Mid(normalizedText, i, 1) = "ナ"
-                        Case "ﾆ": Mid(normalizedText, i, 1) = "ニ"
-                        Case "ﾇ": Mid(normalizedText, i, 1) = "ヌ"
-                        Case "ﾈ": Mid(normalizedText, i, 1) = "ネ"
-                        Case "ﾉ": Mid(normalizedText, i, 1) = "ノ"
-                        Case "ﾊ": Mid(normalizedText, i, 1) = "ハ"
-                        Case "ﾋ": Mid(normalizedText, i, 1) = "ヒ"
-                        Case "ﾌ": Mid(normalizedText, i, 1) = "フ"
-                        Case "ﾍ": Mid(normalizedText, i, 1) = "ヘ"
-                        Case "ﾎ": Mid(normalizedText, i, 1) = "ホ"
-                        Case "ﾏ": Mid(normalizedText, i, 1) = "マ"
-                        Case "ﾐ": Mid(normalizedText, i, 1) = "ミ"
-                        Case "ﾑ": Mid(normalizedText, i, 1) = "ム"
-                        Case "ﾒ": Mid(normalizedText, i, 1) = "メ"
-                        Case "ﾓ": Mid(normalizedText, i, 1) = "モ"
-                        Case "ﾔ": Mid(normalizedText, i, 1) = "ヤ"
-                        Case "ﾕ": Mid(normalizedText, i, 1) = "ユ"
-                        Case "ﾖ": Mid(normalizedText, i, 1) = "ヨ"
-                        Case "ﾗ": Mid(normalizedText, i, 1) = "ラ"
-                        Case "ﾘ": Mid(normalizedText, i, 1) = "リ"
-                        Case "ﾙ": Mid(normalizedText, i, 1) = "ル"
-                        Case "ﾚ": Mid(normalizedText, i, 1) = "レ"
-                        Case "ﾛ": Mid(normalizedText, i, 1) = "ロ"
-                        Case "ﾜ": Mid(normalizedText, i, 1) = "ワ"
-                        Case "ﾝ": Mid(normalizedText, i, 1) = "ン"
-                        Case "ﾞ": Mid(normalizedText, i, 1) = "" ' 濁点を削除
-                        Case "ﾟ": Mid(normalizedText, i, 1) = "" ' 半濁点を削除
-                    End Select
-                End If
-        End Select
     Next i
 
     '連続する半角スペースを単一の半角スペースに変換
