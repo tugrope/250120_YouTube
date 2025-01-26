@@ -7,19 +7,34 @@ Public Function NormalizeJapaneseText(ByVal inputText As String) As String
     '全角スペースを半角スペースに変換
     normalizedText = Replace(inputText, "　", " ")
 
-    '全角英数字を半角英数字に変換
+    '半角英数字を全角英数字に変換
     For i = 1 To Len(normalizedText)
         currentChar = Mid(normalizedText, i, 1)
         Select Case currentChar
-            '全角数字の変換（０-９ → 0-9）
-            Case "０" To "９"
-                Mid(normalizedText, i, 1) = ChrW(AscW(currentChar) - &HFEE0)
-            '全角英字大文字の変換（Ａ-Ｚ → A-Z）
-            Case "Ａ" To "Ｚ"
-                Mid(normalizedText, i, 1) = ChrW(AscW(currentChar) - &HFEE0)
-            '全角英字小文字の変換（ａ-ｚ → a-z）
-            Case "ａ" To "ｚ"
-                Mid(normalizedText, i, 1) = ChrW(AscW(currentChar) - &HFEE0)
+            '半角数字の変換（0-9 → ０-９）
+            Case "0" To "9"
+                Mid(normalizedText, i, 1) = ChrW(AscW(currentChar) + &HFEE0)
+            '半角英字大文字の変換（A-Z → Ａ-Ｚ）
+            Case "A" To "Z"
+                Mid(normalizedText, i, 1) = ChrW(AscW(currentChar) + &HFEE0)
+            '半角英字小文字の変換（a-z → ａ-ｚ）
+            Case "a" To "z"
+                Mid(normalizedText, i, 1) = ChrW(AscW(currentChar) + &HFEE0)
+            '半角記号の変換（例: ! → ！）
+            Case "!" : Mid(normalizedText, i, 1) = "！"
+            Case "@" : Mid(normalizedText, i, 1) = "＠"
+            Case "#" : Mid(normalizedText, i, 1) = "＃"
+            Case "$" : Mid(normalizedText, i, 1) = "＄"
+            Case "%" : Mid(normalizedText, i, 1) = "％"
+            Case "^" : Mid(normalizedText, i, 1) = "＾"
+            Case "&" : Mid(normalizedText, i, 1) = "＆"
+            Case "*" : Mid(normalizedText, i, 1) = "＊"
+            Case "(" : Mid(normalizedText, i, 1) = "（"
+            Case ")" : Mid(normalizedText, i, 1) = "）"
+            Case "-" : Mid(normalizedText, i, 1) = "ー"
+            Case "_" : Mid(normalizedText, i, 1) = "＿"
+            Case "+" : Mid(normalizedText, i, 1) = "＋"
+            Case "=" : Mid(normalizedText, i, 1) = "＝"
         End Select
     Next i
 
@@ -41,6 +56,7 @@ Public Function NormalizeJapaneseText(ByVal inputText As String) As String
                 If nextChar = ChrW(&HFF9E) Or nextChar = ChrW(&HFF9F) Then
                     '2文字を組み合わせて1つの全角カタカナに変換
                     Select Case currentChar & nextChar
+                        ' 濁点付き全角カタカナの処理を追加
                         Case "ｶﾞ": Mid(normalizedText, i, 2) = "ガ"
                         Case "ｷﾞ": Mid(normalizedText, i, 2) = "ギ"
                         Case "ｸﾞ": Mid(normalizedText, i, 2) = "グ"
@@ -67,7 +83,9 @@ Public Function NormalizeJapaneseText(ByVal inputText As String) As String
                         Case "ﾍﾟ": Mid(normalizedText, i, 2) = "ペ"
                         Case "ﾎﾟ": Mid(normalizedText, i, 2) = "ポ"
                     End Select
-                    i = i + 1  '濁点・半濁点分を飛ばす
+                    ' 濁点・半濁点を削除し、次の文字をスキップする処理
+                    Mid(normalizedText, i + 1, 1) = "" ' 濁点・半濁点を空文字に置換
+                    i = i + 1  ' 次の文字（濁点・半濁点）を処理対象から除外
                 Else
                     '濁点・半濁点が続かない場合は1文字ずつ変換
                     Select Case currentChar
@@ -127,8 +145,8 @@ Public Function NormalizeJapaneseText(ByVal inputText As String) As String
                         Case "ﾛ": Mid(normalizedText, i, 1) = "ロ"
                         Case "ﾜ": Mid(normalizedText, i, 1) = "ワ"
                         Case "ﾝ": Mid(normalizedText, i, 1) = "ン"
-                        Case "ﾞ": Mid(normalizedText, i, 1) = ""
-                        Case "ﾟ": Mid(normalizedText, i, 1) = ""
+                        Case "ﾞ": Mid(normalizedText, i, 1) = "" ' 濁点を削除
+                        Case "ﾟ": Mid(normalizedText, i, 1) = "" ' 半濁点を削除
                     End Select
                 End If
         End Select
