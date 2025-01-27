@@ -39,9 +39,9 @@ Function NormalizeText(targetCell As Range) As String
                     Dim prevCharCode As Long
                     prevCharCode = AscW(prevChar)
                     If Err.Number = 0 Then
-                        If (prevCharCode >= &HFF10 And prevCharCode <= &HFF19) Or _   ' 全角数字
-                           (prevCharCode >= &HFF21 And prevCharCode <= &HFF3A) Or _   ' 全角英大文字
-                           (prevCharCode >= &HFF41 And prevCharCode <= &HFF5A) Then   ' 全角英小文字
+                        If (prevCharCode >= &HFF10 And prevCharCode <= &HFF19) Or _
+                        (prevCharCode >= &HFF21 And prevCharCode <= &HFF3A) Or _
+                        (prevCharCode >= &HFF41 And prevCharCode <= &HFF5A) Then
                             tempResult = tempResult & ChrW(&H2D)  ' 半角ハイフン
                         Else
                             tempResult = tempResult & currentChar
