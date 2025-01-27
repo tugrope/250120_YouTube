@@ -1,3 +1,7 @@
+' Excel VBAエディタ内の module6　で呼び出される半角カタカナを全角カタカナに変換する関数
+' Excelシート「P6-2_全角半角」の処理
+' Excel VBAエディタ内のmodule7
+
 Function ConvertToFullWidthKana(targetText As String) As String
     ' 半角カタカナを全角カタカナに変換する関数
     ' 引数：targetText - 変換対象の文字列
