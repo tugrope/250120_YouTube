@@ -1,0 +1,73 @@
+Excel for MacのVBAで濁点や半濁点を処理する方法
+Excel for Macでは、濁点や半濁点を含む文字が正しく処理されないことがあります。これは、Macの文字コードが特有の方式で濁点や半濁点を扱うためです。具体的には、濁点や半濁点が分離された形で保存されることが多く、これがVBAでの処理に影響を与えます。
+
+濁点・半濁点を結合するVBAコードの例
+以下は、分離した濁点や半濁点を結合するためのVBAコードの例です。このコードは、NFD（Normalization Form Decomposition）からNFC（Normalization Form Composition）に変換することを目的としています。
+
+Function CombineDakuten(inputStr As String) As String
+    Dim i As Integer
+    Dim resultStr As String
+    Dim currentChar As String
+    Dim nextChar As String
+
+    resultStr = ""
+
+    For i = 1 To Len(inputStr)
+        currentChar = Mid(inputStr, i, 1)
+        If i < Len(inputStr) Then
+            nextChar = Mid(inputStr, i + 1, 1)
+            ' 濁点や半濁点が次の文字に付く場合
+            If (currentChar = "か" And nextChar = "゛") Or (currentChar = "さ" And nextChar = "゜") Then
+                resultStr = resultStr & currentChar & nextChar
+                i = i + 1 ' 次の文字をスキップ
+            Else
+                resultStr = resultStr & currentChar
+            End If
+        Else
+            resultStr = resultStr & currentChar
+        End If
+    Next i
+
+    CombineDakuten = resultStr
+End Function
+この関数は、入力された文字列を走査し、濁点や半濁点が次の文字に付く場合にそれらを結合します。これにより、正しい形で文字列を処理することが可能になります。
+
+使用例
+この関数を使用するには、Excelのセルに次のように入力します。
+
+Sub TestCombineDakuten()
+    Dim originalStr As String
+    Dim combinedStr As String
+
+    originalStr = "か゛さ゜"
+    combinedStr = CombineDakuten(originalStr)
+    MsgBox combinedStr ' 結果を表示
+End Sub
+このサンプルでは、"か゛さ゜"という文字列を入力すると、正しく結合された文字列が表示されます。
+
+参考情報
+MacのExcelでは、濁点や半濁点の処理に関する問題が多く報告されています。特に、ファイル名やセルの値にこれらの文字が含まれる場合、エラーが発生することがあります123。このような問題を避けるためには、上記のようなVBAコードを活用することが推奨されます。
+
+Excel for Macにおける濁点や半濁点の処理に関して、特に注意が必要なのは、MacOSがNFD（Normalization Form Decomposition）を使用しているため、濁点や半濁点が分離された形で保存されることです。これに対して、WindowsではNFC（Normalization Form Composition）が使用され、濁点や半濁点が結合された形で扱われます。この違いが、ファイル名やセルの値に濁点や半濁点が含まれる場合にエラーを引き起こす原因となります。
+
+また、濁点や半濁点を正しく処理するためのVBAコードの他に、文字列をNFC形式に変換するための関数を作成することも有効です。以下は、NFD形式の文字列をNFC形式に変換するためのVBAコードの例です。
+
+Function ToNFC(str As String) As String
+    Dim i As Long
+    Dim nfdChrs As String
+    Dim nfcChr As String
+
+    For i = 1 To Len(str)
+        nfdChrs = Mid(str, i, 2)
+        If nfdChrs = "か゛" Then
+            nfcChr = "が"
+            str = Replace(str, nfdChrs, nfcChr)
+        ElseIf nfdChrs = "さ゜" Then
+            nfcChr = "ざ"
+            str = Replace(str, nfdChrs, nfcChr)
+        End If
+    Next i
+
+    ToNFC = str
+End Function
+この関数は、NFD形式の文字列を走査し、特定の濁点や半濁点を持つ文字をNFC形式に変換します。これにより、Excelでのデータ処理がよりスムーズになります。特に、ファイル名やデータのやり取りを行う際には、このような変換を行うことでエラーを回避できる可能性が高まります。

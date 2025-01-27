@@ -22,40 +22,20 @@ Public Function NormalizeJapaneseText(ByVal inputText As String) As String
         ElseIf unicodeVal >= &HFF66 And unicodeVal <= &HFF9F Then
             ' 半角カタカナを全角に変換
             nextChar = Mid(normalizedText, i + 1, 1) ' 次の文字を取得
-            If nextChar = ChrW(&HFF9E) Or nextChar = ChrW(&HFF9F) Then
-                ' 濁点・半濁点が続く場合
-                Select Case currentChar
-                    Case "ｶ": Mid(normalizedText, i, 1) = "ガ"
-                    Case "ｷ": Mid(normalizedText, i, 1) = "ギ"
-                    Case "ｸ": Mid(normalizedText, i, 1) = "グ"
-                    Case "ｹ": Mid(normalizedText, i, 1) = "ゲ"
-                    Case "ｺ": Mid(normalizedText, i, 1) = "ゴ"
-                    Case "ｻ": Mid(normalizedText, i, 1) = "ザ"
-                    Case "ｼ": Mid(normalizedText, i, 1) = "ジ"
-                    Case "ｽ": Mid(normalizedText, i, 1) = "ズ"
-                    Case "ｾ": Mid(normalizedText, i, 1) = "ゼ"
-                    Case "ｿ": Mid(normalizedText, i, 1) = "ゾ"
-                    Case "ﾀ": Mid(normalizedText, i, 1) = "ダ"
-                    Case "ﾁ": Mid(normalizedText, i, 1) = "ヂ"
-                    Case "ﾂ": Mid(normalizedText, i, 1) = "ヅ"
-                    Case "ﾃ": Mid(normalizedText, i, 1) = "デ"
-                    Case "ﾄ": Mid(normalizedText, i, 1) = "ド"
-                    Case "ﾊ": Mid(normalizedText, i, 1) = "バ"
-                    Case "ﾋ": Mid(normalizedText, i, 1) = "ビ"
-                    Case "ﾌ": Mid(normalizedText, i, 1) = "ブ"
-                    Case "ﾍ": Mid(normalizedText, i, 1) = "ベ"
-                    Case "ﾎ": Mid(normalizedText, i, 1) = "ボ"
-                    Case "ﾊﾟ": Mid(normalizedText, i, 1) = "パ"
-                    Case "ﾋﾟ": Mid(normalizedText, i, 1) = "ピ"
-                    Case "ﾌﾟ": Mid(normalizedText, i, 1) = "プ"
-                    Case "ﾍﾟ": Mid(normalizedText, i, 1) = "ペ"
-                    Case "ﾎﾟ": Mid(normalizedText, i, 1) = "ポ"
-                End Select
-                ' 濁点・半濁点を削除し、次の文字をスキップする処理
-                Mid(normalizedText, i + 1, 1) = "" ' 濁点・半濁点を空文字に置換
-                i = i + 1  ' 次の文字（濁点・半濁点）を処理対象から除外
+
+            ' 濁点・半濁点付きの文字を適切に変換
+            Dim convertedChar As String
+            convertedChar = ConvertHankakuKana(currentChar, nextChar)
+
+            If Len(convertedChar) > 0 Then
+                Mid(normalizedText, i, 1) = convertedChar
+                If nextChar = ChrW(&HFF9E) Or nextChar = ChrW(&HFF9F) Then
+                    ' 濁点・半濁点を削除し、既に変換後の文字に組み込み済み
+                    Mid(normalizedText, i + 1, 1) = ""
+                    i = i + 1
+                End If
             Else
-                ' 濁点・半濁点が続かない場合は1文字ずつ変換
+                ' 濁点・半濁点がない場合の通常の変換
                 Mid(normalizedText, i, 1) = StrConv(currentChar, vbWide)
             End If
         ElseIf unicodeVal = &HFF0D Or unicodeVal = &H30FC Then
@@ -70,4 +50,47 @@ Public Function NormalizeJapaneseText(ByVal inputText As String) As String
     Loop
 
     NormalizeJapaneseText = normalizedText
+End Function
+
+' 半角カタカナを全角カタカナに変換する補助関数
+Private Function ConvertHankakuKana(currentChar As String, nextChar As String) As String
+    ' 濁点・半濁点のチェック
+    Dim hasDakuten As Boolean
+    Dim hasHandakuten As Boolean
+
+    hasDakuten = (nextChar = ChrW(&HFF9E))    ' 濁点
+    hasHandakuten = (nextChar = ChrW(&HFF9F))  ' 半濁点
+
+    ' 文字変換テーブル
+    Select Case currentChar
+        ' カ行
+        Case "ｶ": ConvertHankakuKana = IIf(hasDakuten, "ガ", "カ")
+        Case "ｷ": ConvertHankakuKana = IIf(hasDakuten, "ギ", "キ")
+        Case "ｸ": ConvertHankakuKana = IIf(hasDakuten, "グ", "ク")
+        Case "ｹ": ConvertHankakuKana = IIf(hasDakuten, "ゲ", "ケ")
+        Case "ｺ": ConvertHankakuKana = IIf(hasDakuten, "ゴ", "コ")
+
+        ' サ行
+        Case "ｻ": ConvertHankakuKana = IIf(hasDakuten, "ザ", "サ")
+        Case "ｼ": ConvertHankakuKana = IIf(hasDakuten, "ジ", "シ")
+        Case "ｽ": ConvertHankakuKana = IIf(hasDakuten, "ズ", "ス")
+        Case "ｾ": ConvertHankakuKana = IIf(hasDakuten, "ゼ", "セ")
+        Case "ｿ": ConvertHankakuKana = IIf(hasDakuten, "ゾ", "ソ")
+
+        ' タ行
+        Case "ﾀ": ConvertHankakuKana = IIf(hasDakuten, "ダ", "タ")
+        Case "ﾁ": ConvertHankakuKana = IIf(hasDakuten, "ヂ", "チ")
+        Case "ﾂ": ConvertHankakuKana = IIf(hasDakuten, "ヅ", "ツ")
+        Case "ﾃ": ConvertHankakuKana = IIf(hasDakuten, "デ", "テ")
+        Case "ﾄ": ConvertHankakuKana = IIf(hasDakuten, "ド", "ト")
+
+        ' ハ行
+        Case "ﾊ": ConvertHankakuKana = IIf(hasDakuten, "バ", IIf(hasHandakuten, "パ", "ハ"))
+        Case "ﾋ": ConvertHankakuKana = IIf(hasDakuten, "ビ", IIf(hasHandakuten, "ピ", "ヒ"))
+        Case "ﾌ": ConvertHankakuKana = IIf(hasDakuten, "ブ", IIf(hasHandakuten, "プ", "フ"))
+        Case "ﾍ": ConvertHankakuKana = IIf(hasDakuten, "ベ", IIf(hasHandakuten, "ペ", "ヘ"))
+        Case "ﾎ": ConvertHankakuKana = IIf(hasDakuten, "ボ", IIf(hasHandakuten, "ポ", "ホ"))
+
+        Case Else: ConvertHankakuKana = ""
+    End Select
 End Function
