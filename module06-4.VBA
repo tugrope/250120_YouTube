@@ -1,65 +1,55 @@
-Function NormalizeText(targetCell As Range) As String
+' 関数名: NormalizeAndProcessText
+'
+' 機能: 入力テキストを正規化し、以下の処理を順番に実行する
+'   module06-3.vbaとmodule601.vbaをマージして作成した。
+'
+' 処理フロー:
+'   1. 入力セルからテキストを取得
+'   2. 半角カタカナを全角カタカナに変換
+'   3. 半角英数字を全角英数字に変換
+'   4. ハイフン類似文字（全角/半角ハイフン、ダッシュなど）を全角長音記号「ー」に統一
+'   5. 全角英数字の後に続く長音記号「ー」をハイフン「-」に変換
+'
+' 注意点:
+'   - 各処理は順番に実行され、前の処理結果が次の処理に引き継がれる
+'   - エラー発生時はErrorHandlerにジャンプ
+'   - 全角英数字の判定にはIsFullWidthAlphanumeric関数を使用
+
+
+Option Explicit
+
+' メイン関数: NormalizeAndProcessText
+Function NormalizeAndProcessText(targetCell As Range) As String
+    On Error GoTo ErrorHandler
+
     Dim inputText As String
     Dim i As Long
-    Dim resultText As String
+    Dim intermediateText As String
+    Dim finalText As String
     Dim currentChar As String
     Dim prevChar As String
+    Dim tempResult As String
 
     ' 入力セルからテキストを取得
     inputText = targetCell.Text
 
-    ' まず半角カタカナを全角カタカナに変換
-    resultText = ConvertToFullWidthKana(inputText)
+    ' 半角カタカナを全角カタカナに変換
+    intermediateText = ConvertToFullWidthKana(inputText)
 
     ' 一時変数を初期化
-    Dim tempResult As String
     tempResult = ""
     prevChar = ""
 
-    ' 文字列を1文字ずつ処理
-    For i = 1 To Len(resultText)
-        currentChar = Mid(resultText, i, 1)
+    ' 半角英数字の全角変換およびハイフン類似文字の処理
+    For i = 1 To Len(intermediateText)
+        currentChar = Mid(intermediateText, i, 1)
 
-        ' ハイフン類似文字の判定と変換
         Select Case AscW(currentChar)
-            Case &H2D     ' 半角ハイフンマイナス -
-                tempResult = tempResult & ChrW(&H30FC)
-            Case &H2212   ' 全角マイナス −
-                tempResult = tempResult & ChrW(&H30FC)
-            Case &HFF0D   ' 全角ハイフンマイナス －
-                tempResult = tempResult & ChrW(&H30FC)
-            Case &H2014   ' 全角ダッシュ —
-                tempResult = tempResult & ChrW(&H30FC)
-            Case &H2015   ' 全角ホリゾンタルバー ―
-                tempResult = tempResult & ChrW(&H30FC)
-            Case &H30FC   ' 全角長音記号 ー
-                ' 直前の文字が全角英数字の場合は半角ハイフンに変換
-                If prevChar <> "" And Len(prevChar) > 0 Then
-                    On Error Resume Next
-                    Dim prevCharCode As Long
-                    prevCharCode = AscW(prevChar)
-                    If Err.Number = 0 Then
-                        If (prevCharCode >= &HFF10 And prevCharCode <= &HFF19) Or _
-                        (prevCharCode >= &HFF21 And prevCharCode <= &HFF3A) Or _
-                        (prevCharCode >= &HFF41 And prevCharCode <= &HFF5A) Then
-                            tempResult = tempResult & ChrW(&H2D)  ' 半角ハイフン
-                        Else
-                            tempResult = tempResult & currentChar
-                        End If
-                    Else
-                        tempResult = tempResult & currentChar
-                    End If
-                    On Error GoTo 0
-                Else
-                    tempResult = tempResult & currentChar
-                End If
-            Case 48 To 57  ' 半角数字 (0-9)
+            Case 48 To 57, 65 To 90, 97 To 122 ' 半角数字および英字
                 tempResult = tempResult & StrConv(currentChar, vbWide)
-            Case 65 To 90  ' 半角英大文字 (A-Z)
-                tempResult = tempResult & StrConv(currentChar, vbWide)
-            Case 97 To 122 ' 半角英小文字 (a-z)
-                tempResult = tempResult & StrConv(currentChar, vbWide)
-            Case Else      ' その他の文字はそのまま
+            Case &H2D, &H2212, &HFF0D, &H2014, &H2015 ' ハイフン類似文字
+                tempResult = tempResult & ChrW(&H30FC) ' 全角長音記号に変換
+            Case Else ' その他の文字はそのまま
                 tempResult = tempResult & currentChar
         End Select
 
@@ -67,5 +57,62 @@ Function NormalizeText(targetCell As Range) As String
         prevChar = Right(tempResult, 1)
     Next i
 
-    NormalizeText = tempResult
+    ' 全角英数字後の長音記号をハイフンに変換
+    finalText = ""
+    prevChar = ""
+
+    For i = 1 To Len(tempResult)
+        currentChar = Mid(tempResult, i, 1)
+
+        If prevChar <> "" Then
+            If IsFullWidthAlphanumeric(prevChar) Then
+                If currentChar = ChrW(&H30FC) Then
+                    currentChar = "-"
+                End If
+            End If
+        End If
+
+        finalText = finalText & currentChar
+        prevChar = currentChar
+    Next i
+
+    NormalizeAndProcessText = finalText
+    Exit Function
+
+ErrorHandler:
+    MsgBox "エラーが発生しました: " & Err.Description, vbExclamation
+    NormalizeAndProcessText = ""
+End Function
+
+' 補助関数: 文字が全角英数字かどうかを判定
+Function IsFullWidthAlphanumeric(character As String) As Boolean
+    Select Case character
+        Case "０" To "９", "Ａ" To "Ｚ", "ａ" To "ｚ"
+            IsFullWidthAlphanumeric = True
+        Case Else
+            IsFullWidthAlphanumeric = False
+    End Select
+End Function
+
+' 補助関数: 半角カタカナを全角カタカナに変換
+Function ConvertToFullWidthKana(text As String) As String
+    On Error GoTo ErrorHandler
+
+    Dim i As Long
+    Dim result As String
+    Dim currentChar As String
+
+    result = ""
+
+    For i = 1 To Len(text)
+        currentChar = Mid(text, i, 1)
+        result = result & StrConv(currentChar, vbWide)
+    Next i
+
+    ConvertToFullWidthKana = result
+    Exit Function
+
+ErrorHandler:
+    MsgBox "カタカナ変換時にエラーが発生しました: " & Err.Description, vbExclamation
+    ConvertToFullWidthKana = text
 End Function
