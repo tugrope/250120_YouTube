@@ -34,48 +34,31 @@ Function NormalizeText(targetCell As Range) As String
                 tempResult = tempResult & currentChar
         End Select
 
+        ' 全角英数字の後に続く長音記号をハイフンに変換
+        If prevChar <> "" Then
+            ' 直前の文字が全角英数字かどうかを判定
+            If IsFullWidthAlphanumeric(prevChar) Then
+                ' 現在の文字が長音記号「ー」かどうかを判定
+                If currentChar = "ー" Then
+                    ' 最後の文字をハイフンに置換
+                    tempResult = Left(tempResult, Len(tempResult) - 1) & "-"
+                End If
+            End If
+        End If
+
         ' 現在の文字を前の文字として保存
         prevChar = Right(tempResult, 1)
     Next i
 
-    ' ' ハイフン類似文字の処理を別ループで実行
-    ' Dim finalResult As String
-    ' finalResult = ""
-    ' For i = 1 To Len(tempResult)
-    '     currentChar = Mid(tempResult, i, 1)
-
-    '     ' ハイフン類似文字の判定と変換
-    '     Select Case AscW(currentChar)
-    '         Case &H2D, &H2212, &HFF0D, &H2014, &H2015
-    '             finalResult = finalResult & ChrW(&H30FC)
-    '         Case &H30FC
-    '             ' 直前の文字が全角英数字の場合は半角ハイフンに変換
-    '             If prevChar <> "" And Len(prevChar) > 0 Then
-    '                 On Error Resume Next
-    '                 Dim prevCharCode As Long
-    '                 prevCharCode = AscW(prevChar)
-    '                 If Err.Number = 0 Then
-    '                     If (prevCharCode >= &HFF10 And prevCharCode <= &HFF19) Or _
-    '                     (prevCharCode >= &HFF21 And prevCharCode <= &HFF3A) Or _
-    '                     (prevCharCode >= &HFF41 And prevCharCode <= &HFF5A) Then
-    '                         finalResult = finalResult & "-"
-    '                     Else
-    '                         finalResult = finalResult & "ー"
-    '                     End If
-    '                 Else
-    '                     finalResult = finalResult & "ー"
-    '                 End If
-    '                 On Error GoTo 0
-    '             Else
-    '                 finalResult = finalResult & "ー"
-    '             End If
-    '         Case Else
-    '             finalResult = finalResult & currentChar
-    '     End Select
-
-    '     ' 現在の文字を前の文字として保存
-    '     prevChar = Right(finalResult, 1)
-    ' Next i
-
     NormalizeText = tempResult
+End Function
+
+' 補助関数: 文字が全角英数字かどうかを判定
+Function IsFullWidthAlphanumeric(character As String) As Boolean
+    Select Case character
+        Case "０" To "９", "Ａ" To "Ｚ", "ａ" To "ｚ"
+            IsFullWidthAlphanumeric = True
+        Case Else
+            IsFullWidthAlphanumeric = False
+    End Select
 End Function
