@@ -1,6 +1,8 @@
 ' 6-5. 全角英数字を半角英数字に変換
 ' 6-6. 全角スペースを半角スペースに変換
 ' 6-7. 連続する半角スペースを単一の半角スペースにする
+' Excel for macのVBAエディタではmodule11に入れてあります。
+' これを6-4にマージして終了と思っていましたが、不要なスペースへの対応が必要かと思っています。
 
 Function NormalizeAndProcessText3(targetCell As Range) As String
     On Error GoTo ErrorHandler
@@ -68,10 +70,8 @@ Private Function IsWideAlphaNumericOrSpace(char As String) As Boolean
         Exit Function
     End If
 
-    ' 全角英数字（０-９、Ａ-Ｚ、ａ-ｚ）
-    If (charCode >= &HFF10 And charCode <= &HFF19) Or _  '全角数字
-       (charCode >= &HFF21 And charCode <= &HFF3A) Or _  '全角英大文字
-       (charCode >= &HFF41 And charCode <= &HFF5A) Then  '全角英小文字
+    ' 全角英数字（０-９、Ａ-Ｚ、ａ-ｚ）全角数字、全角英大文字、全角英小文字
+    If (charCode >= &HFF10 And charCode <= &HFF19) Or (charCode >= &HFF21 And charCode <= &HFF3A) Or (charCode >= &HFF41 And charCode <= &HFF5A) Then  '全角英小文字
         IsWideAlphaNumericOrSpace = True
         Exit Function
     End If
