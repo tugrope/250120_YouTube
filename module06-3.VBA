@@ -19,7 +19,7 @@ Function NormalizeText(targetCell As Range) As String
     inputText = targetCell.Text
 
     ' まず半角カタカナを全角カタカナに変換
-    resultText = ConvertToFullWidthKana(inputText)
+    resultText = Module7.ConvertToFullWidthKana(inputText)
 
     ' 一時変数を初期化
     Dim tempResult As String

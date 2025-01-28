@@ -34,7 +34,7 @@ Function NormalizeAndProcessText(targetCell As Range) As String
     inputText = targetCell.Text
 
     ' 半角カタカナを全角カタカナに変換
-    intermediateText = ConvertToFullWidthKana(inputText)
+    intermediateText = Module7.ConvertToFullWidthKana(inputText)
 
     ' 一時変数を初期化
     tempResult = ""
