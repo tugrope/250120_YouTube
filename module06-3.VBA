@@ -1,3 +1,13 @@
+' 関数名: NormalizeText
+' 機能: 入力テキストを正規化する
+' 処理フロー:
+'   1. 入力セルからテキストを取得
+'   2. まず半角カタカナを全角カタカナに変換
+'   3. 一時変数を初期化
+'   4. 文字列を1文字ずつ処理して半角英数字を全角に変換
+'   5. ハイフン類似文字（全角/半角ハイフン、ダッシュなど）を全角長音記号「ー」に統一
+'   6. 結果文字列を返す
+
 Function NormalizeText(targetCell As Range) As String
     Dim inputText As String
     Dim i As Long

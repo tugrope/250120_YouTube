@@ -1,7 +1,7 @@
 ' 関数名: NormalizeAndProcessText
 '
 ' 機能: 入力テキストを正規化し、以下の処理を順番に実行する
-'   module06-3.vbaとmodule601.vbaをマージして作成した。
+'   module06-3.vbaとmodule6-44.vbaをマージして作成した。
 '
 ' 処理フロー:
 '   1. 入力セルからテキストを取得

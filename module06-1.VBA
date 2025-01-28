@@ -1,3 +1,14 @@
+' 関数名: NormalizeText
+' 機能: 入力テキストを正規化する
+' 処理フロー:
+'   1. 入力セルからテキストを取得
+'   2. 結果文字列を初期化
+'   3. 文字列を1文字ずつ処理:
+'      a. 現在の文字を取得
+'      b. 半角英数字の判定と変換
+'      c. 結果文字列に現在の文字を追加
+'   4. 変換後の文字列を返す
+
 Function NormalizeText(targetCell As Range) As String
     Dim inputText As String
     Dim i As Long

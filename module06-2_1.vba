@@ -1,6 +1,6 @@
 ' Excel VBAエディタ内の module6　で呼び出される半角カタカナを全角カタカナに変換する関数
-' Excelシート「P6-2_全角半角」の処理
-' Excel VBAエディタ内のmodule7
+' Excelシート「P6-2_全角半角」の処理フローに対応
+' Excel VBAエディタ内のmodule7に記述してあるものです（わかりにくーい）
 
 Function ConvertToFullWidthKana(targetText As String) As String
     ' 半角カタカナを全角カタカナに変換する関数
